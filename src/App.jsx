@@ -1,4 +1,4 @@
-import Chat from "./Chat.jsx";
+import Interview from "./Interview.jsx";
 
 export default function App() {
   return (
@@ -20,7 +20,7 @@ export default function App() {
         </p>
       </section>
 
-      <Chat />
+      <Interview />
 
       <footer className="footer">
         <span>&copy; {new Date().getFullYear()} tech.sex</span>
