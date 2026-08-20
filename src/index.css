@@ -201,6 +201,53 @@ body {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
 }
 
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid rgba(236, 236, 244, 0.08);
+  background: rgba(8, 8, 13, 0.4);
+}
+
+.chat-select {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: rgba(236, 236, 244, 0.05);
+  border: 1px solid rgba(236, 236, 244, 0.12);
+  border-radius: 8px;
+  padding: 0.35rem 0.5rem;
+  outline: none;
+}
+
+.chat-select:focus {
+  border-color: rgba(176, 76, 255, 0.55);
+}
+
+.chat-icon-btn {
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--muted);
+  background: rgba(236, 236, 244, 0.05);
+  border: 1px solid rgba(236, 236, 244, 0.12);
+  border-radius: 8px;
+  width: 2rem;
+  height: 2rem;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.chat-icon-btn:hover {
+  color: var(--ink);
+  border-color: rgba(176, 76, 255, 0.55);
+}
+
 .chat-scroll {
   height: min(320px, 38dvh);
   overflow-y: auto;
