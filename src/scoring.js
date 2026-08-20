@@ -4,7 +4,7 @@ export function scoreQuiz(quiz, answers) {
   for (const question of quiz.questions) {
     const answer = answers[question.id];
     if (question.type === "text") {
-      scoreText(question, String(answer || ""), totals);
+      scoreText(question, answer, totals);
       continue;
     }
     const selected = question.options.find(option => option.value === answer);
@@ -21,8 +21,18 @@ export function scoreQuiz(quiz, answers) {
   return {...outcome, axes};
 }
 
+/** Text answers are strings, or { text, grades } objects once an LLM grade lands. */
 function scoreText(question, answer, totals) {
-  const normalized = answer.toLowerCase();
+  const entry = answer && typeof answer === "object" ? answer : { text: answer };
+  if (entry.grades && question.grading) {
+    const [min, max] = question.grading.scale;
+    const axis = question.grading.axis;
+    const points = Math.max(min, Math.min(max, Number(entry.grades[axis]) || 0));
+    totals[axis].points += points;
+    totals[axis].possible += Math.max(Math.abs(min), Math.abs(max));
+    return;
+  }
+  const normalized = String(entry.text || "").toLowerCase();
   for (const [axis, rules] of Object.entries(question.rubric || {})) {
     const matches = rules.keywords.filter(word => normalized.includes(word.toLowerCase())).length;
     totals[axis].points += matches ? rules.score : 0;

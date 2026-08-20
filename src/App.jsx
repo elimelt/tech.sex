@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { QUIZZES } from "./quizzes.js";
 import { scoreQuiz } from "./scoring.js";
+import { gradeText, warmUp } from "./grader.js";
 
 function Icon({ name }) {
   const paths = {
@@ -44,9 +45,30 @@ function Home({ onPick }) {
 function Quiz({ quiz, onExit }) {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState({});
+  useEffect(() => { if (quiz.questions.some(q => q.grading)) warmUp(); }, [quiz]);
   const question = quiz.questions[index];
-  const result = useMemo(() => index === quiz.questions.length ? scoreQuiz(quiz, answers) : null, [quiz, answers, index]);
-  function answer(value) { setAnswers(a => ({...a, [question.id]: value})); setTimeout(() => setIndex(i => i + 1), 160); }
+  const done = index === quiz.questions.length;
+  const grading = done && quiz.questions.some(q => answers[q.id]?.status === "pending");
+  const result = useMemo(() => done && !grading ? scoreQuiz(quiz, answers) : null, [quiz, answers, done, grading]);
+  function answer(value) {
+    if (question.type === "text" && question.grading) {
+      setAnswers(a => ({...a, [question.id]: { text: value, status: "pending" }}));
+      // Grade in the background while the user answers the remaining questions.
+      // The stale-text guard drops results for answers that were edited or reset.
+      gradeText(quiz, question, value).then(
+        grades => setAnswers(a => a[question.id]?.text === value ? {...a, [question.id]: { text: value, status: "done", grades }} : a),
+        () => setAnswers(a => a[question.id]?.text === value ? {...a, [question.id]: { text: value, status: "failed" }} : a),
+      );
+    } else {
+      setAnswers(a => ({...a, [question.id]: value}));
+    }
+    setTimeout(() => setIndex(i => i + 1), 160);
+  }
+  if (grading) return <section className="runner" style={{"--accent": quiz.color}}>
+    <div className="progress-meta"><span>{quiz.glyph} {quiz.title}</span><b>almost there</b></div>
+    <div className="progress"><i style={{width: "100%"}} /></div>
+    <article className="question"><span className="q-number">ONE MOMENT</span><h1>Reading your words…</h1><p>Your free responses are being scored for their themes.</p></article>
+  </section>;
   if (result) return <Result quiz={quiz} result={result} restart={() => { setAnswers({}); setIndex(0); }} onExit={onExit} />;
   const selected = answers[question.id];
   return <section className="runner" style={{"--accent": quiz.color}}>
@@ -54,14 +76,14 @@ function Quiz({ quiz, onExit }) {
     <div className="progress-meta"><span>{quiz.glyph} {quiz.title}</span><b>{index + 1} / {quiz.questions.length}</b></div>
     <div className="progress"><i style={{width: `${((index + 1) / quiz.questions.length) * 100}%`}} /></div>
     <article className="question" key={question.id}><span className="q-number">QUESTION {String(index + 1).padStart(2, "0")}</span><h1>{question.prompt}</h1>{question.hint && <p>{question.hint}</p>}
-      {question.type === "text" ? <TextAnswer question={question} onAnswer={answer} initial={selected} /> : <div className="options">{question.options.map((option, i) => <button className={selected === option.value ? "selected" : ""} key={option.value} onClick={() => answer(option.value)}><span>{String.fromCharCode(65 + i)}</span>{option.label}</button>)}</div>}
+      {question.type === "text" ? <TextAnswer question={question} onAnswer={answer} initial={selected && typeof selected === "object" ? selected.text : selected} /> : <div className="options">{question.options.map((option, i) => <button className={selected === option.value ? "selected" : ""} key={option.value} onClick={() => answer(option.value)}><span>{String.fromCharCode(65 + i)}</span>{option.label}</button>)}</div>}
     </article>
   </section>;
 }
 
 function TextAnswer({ question, onAnswer, initial = "" }) {
   const [value, setValue] = useState(initial);
-  return <form className="text-answer" onSubmit={e => {e.preventDefault(); if(value.trim()) onAnswer(value.trim());}}><textarea autoFocus value={value} onChange={e => setValue(e.target.value)} placeholder={question.placeholder || "Write whatever comes to mind…"} maxLength="600" /><div><small>{value.length}/600 · scored from themes in your response</small><button disabled={!value.trim()}>Continue <Icon name="arrow" /></button></div></form>;
+  return <form className="text-answer" onSubmit={e => {e.preventDefault(); if(value.trim()) onAnswer(value.trim());}}><textarea autoFocus value={value} onChange={e => setValue(e.target.value)} placeholder={question.placeholder || "Write whatever comes to mind…"} maxLength="600" /><div><small>{value.length}/600 · read once by our model to find its themes, never stored</small><button disabled={!value.trim()}>Continue <Icon name="arrow" /></button></div></form>;
 }
 
 function Result({ quiz, result, restart, onExit }) {
