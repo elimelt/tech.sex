@@ -1,3 +1,5 @@
+import Chat from "./Chat.jsx";
+
 export default function App() {
   return (
     <main className="page">
@@ -17,6 +19,8 @@ export default function App() {
           something is coming<span className="cursor" />
         </p>
       </section>
+
+      <Chat />
 
       <footer className="footer">
         <span>&copy; {new Date().getFullYear()} tech.sex</span>
