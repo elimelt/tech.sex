@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 const API_URL = "https://llm.elimelt.com/v1/chat/completions";
-const MODEL = "gemma2:2b";
+const MODEL = "gpt-oss:20b";
 const SYSTEM = {
   role: "system",
   content:
