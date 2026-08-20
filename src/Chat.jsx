@@ -27,20 +27,52 @@ export default function Chat() {
     setMessages(next);
     setInput("");
     setBusy(true);
+    let streaming = false;
     try {
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: MODEL,
+          stream: true,
           messages: [SYSTEM, ...next.map(({ role, content }) => ({ role, content }))],
         }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const reply =
-        data.choices?.[0]?.message?.content?.trim() || "(empty reply)";
-      setMessages((m) => [...m, { role: "assistant", content: reply }]);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let reply = "";
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop();
+        for (const line of lines) {
+          const payload = line.trim().replace(/^data:\s*/, "");
+          if (!payload || payload === "[DONE]" || !line.startsWith("data:"))
+            continue;
+          const delta = JSON.parse(payload).choices?.[0]?.delta?.content;
+          if (!delta) continue;
+          reply += delta;
+          if (!streaming) {
+            streaming = true;
+            setMessages((m) => [...m, { role: "assistant", content: reply }]);
+          } else {
+            setMessages((m) => [
+              ...m.slice(0, -1),
+              { role: "assistant", content: reply },
+            ]);
+          }
+        }
+      }
+      if (!streaming) {
+        setMessages((m) => [
+          ...m,
+          { role: "assistant", content: "(empty reply)" },
+        ]);
+      }
     } catch (err) {
       setMessages((m) => [
         ...m,
@@ -65,7 +97,7 @@ export default function Chat() {
             {m.content}
           </div>
         ))}
-        {busy && (
+        {busy && messages[messages.length - 1]?.role !== "assistant" && (
           <div className="bubble assistant typing" aria-label="thinking">
             <span />
             <span />
