@@ -5,7 +5,7 @@ const MODEL = "gemma2:2b";
 const SYSTEM = {
   role: "system",
   content:
-    "You are the resident chatbot of tech.sex, a mysterious landing page. Be helpful, playful, and brief. A few sentences max.",
+    "You are a chill, laid-back friend hanging out on tech.sex. Talk casually, like texting a buddy. Be warm and genuine, never salesy or suggestive. Keep replies short, a few sentences max.",
 };
 
 export default function Chat() {
