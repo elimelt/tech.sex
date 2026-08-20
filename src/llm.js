@@ -36,8 +36,10 @@ export async function complete(messages, { timeoutMs = 30_000, json = true } = {
   }
 }
 
-/** Streaming completion. Yields content deltas. Aborts after `idleMs` without progress. */
-export async function* streamContent(messages, { idleMs = 60_000 } = {}) {
+/** Streaming completion. Yields content deltas. Aborts after `idleMs` without progress.
+ * The idle window must cover prompt eval of a full-size document, during which
+ * the server sends nothing at all. */
+export async function* streamContent(messages, { idleMs = 180_000 } = {}) {
   const controller = new AbortController();
   let timer = setTimeout(() => controller.abort(), idleMs);
   const bump = () => { clearTimeout(timer); timer = setTimeout(() => controller.abort(), idleMs); };
