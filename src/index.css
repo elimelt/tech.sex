@@ -193,49 +193,42 @@ body {
   width: min(620px, 100%);
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(236, 236, 244, 0.1);
-  border-radius: 16px;
-  background: rgba(12, 12, 20, 0.55);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
 }
 
 .chat-restart {
   position: absolute;
-  top: 0.55rem;
-  right: 0.55rem;
+  top: 0;
+  right: 0.4rem;
   z-index: 1;
   font: inherit;
   font-size: 0.9rem;
   line-height: 1;
   color: var(--faint);
-  background: rgba(8, 8, 13, 0.5);
-  border: 1px solid rgba(236, 236, 244, 0.1);
-  border-radius: 8px;
-  width: 1.8rem;
-  height: 1.8rem;
+  background: none;
+  border: none;
+  padding: 0.2rem;
   cursor: pointer;
-  transition:
-    color 0.15s,
-    border-color 0.15s;
+  transition: color 0.15s;
 }
 
 .chat-restart:hover {
   color: var(--ink);
-  border-color: rgba(176, 76, 255, 0.55);
 }
 
 .chat-scroll {
   height: min(320px, 38dvh);
   overflow-y: auto;
-  padding: 1.1rem;
+  padding: 1.1rem 0.4rem;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  scrollbar-width: thin;
-  scrollbar-color: var(--faint) transparent;
+  gap: 0.7rem;
+  scrollbar-width: none;
+  mask-image: linear-gradient(to bottom, transparent, black 14%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 14%);
+}
+
+.chat-scroll::-webkit-scrollbar {
+  display: none;
 }
 
 .chat-empty {
@@ -269,10 +262,11 @@ body {
 
 .bubble.assistant {
   align-self: flex-start;
-  background: rgba(236, 236, 244, 0.06);
-  border: 1px solid rgba(236, 236, 244, 0.1);
-  border-bottom-left-radius: 4px;
+  background: none;
+  border: none;
+  padding-left: 0;
   color: var(--ink);
+  text-shadow: 0 1px 12px rgba(8, 8, 13, 0.9);
 }
 
 .bubble.error {
@@ -284,7 +278,7 @@ body {
   display: inline-flex;
   gap: 0.3rem;
   align-items: center;
-  padding: 0.75rem 0.9rem;
+  padding: 0.75rem 0;
 }
 
 .bubble.typing span {
@@ -313,9 +307,7 @@ body {
 .chat-form {
   display: flex;
   gap: 0.5rem;
-  padding: 0.7rem;
-  border-top: 1px solid rgba(236, 236, 244, 0.08);
-  background: rgba(8, 8, 13, 0.4);
+  padding: 0.3rem 0.4rem 0;
 }
 
 .chat-input {
