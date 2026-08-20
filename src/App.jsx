@@ -11,15 +11,6 @@ export default function App() {
       <div className="grid-overlay" aria-hidden="true" />
       <div className="noise" aria-hidden="true" />
 
-      <section className="hero">
-        <h1 className="wordmark">
-          tech<span className="dot">.</span>sex
-        </h1>
-        <p className="tagline">
-          something is coming<span className="cursor" />
-        </p>
-      </section>
-
       <Interview />
 
       <footer className="footer">
