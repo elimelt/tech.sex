@@ -249,6 +249,32 @@ body {
   color: var(--ink);
 }
 
+.reasoning {
+  margin-bottom: 0.45rem;
+  font-size: 0.78rem;
+}
+
+.reasoning summary {
+  cursor: pointer;
+  color: var(--faint);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  user-select: none;
+}
+
+.reasoning summary:hover {
+  color: var(--muted);
+}
+
+.reasoning-body {
+  margin-top: 0.4rem;
+  padding-left: 0.7rem;
+  border-left: 2px solid rgba(176, 76, 255, 0.35);
+  color: var(--muted);
+  white-space: pre-wrap;
+}
+
 .bubble.error {
   border-color: rgba(255, 90, 90, 0.4);
   color: #ff9c9c;

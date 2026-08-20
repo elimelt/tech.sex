@@ -43,6 +43,7 @@ export default function Chat() {
       const decoder = new TextDecoder();
       let buffer = "";
       let reply = "";
+      let reasoning = "";
       for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -53,17 +54,16 @@ export default function Chat() {
           const payload = line.trim().replace(/^data:\s*/, "");
           if (!payload || payload === "[DONE]" || !line.startsWith("data:"))
             continue;
-          const delta = JSON.parse(payload).choices?.[0]?.delta?.content;
-          if (!delta) continue;
-          reply += delta;
+          const delta = JSON.parse(payload).choices?.[0]?.delta;
+          if (!delta?.content && !delta?.reasoning) continue;
+          reply += delta.content || "";
+          reasoning += delta.reasoning || "";
+          const msg = { role: "assistant", content: reply, reasoning };
           if (!streaming) {
             streaming = true;
-            setMessages((m) => [...m, { role: "assistant", content: reply }]);
+            setMessages((m) => [...m, msg]);
           } else {
-            setMessages((m) => [
-              ...m.slice(0, -1),
-              { role: "assistant", content: reply },
-            ]);
+            setMessages((m) => [...m.slice(0, -1), msg]);
           }
         }
       }
@@ -94,6 +94,12 @@ export default function Chat() {
             key={i}
             className={`bubble ${m.role} ${m.error ? "error" : ""}`}
           >
+            {m.reasoning && (
+              <details className="reasoning">
+                <summary>reasoning</summary>
+                <div className="reasoning-body">{m.reasoning}</div>
+              </details>
+            )}
             {m.content}
           </div>
         ))}
