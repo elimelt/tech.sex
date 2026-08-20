@@ -1,6 +1,25 @@
 # tech.sex
 
-A static, privacy-friendly personality quiz platform built with React and Vite. Eight quizzes ship with the app, including a free-response quiz scored by an LLM rubric grader. Multiple-choice answers never leave the browser; free-response text is sent once to the grading endpoint and not stored.
+Paste a document, get a quiz, track what sticks. A static learning tracker built with React and Vite.
+
+## How it works
+
+1. Paste a document (notes, an article, a chapter) into a new track.
+2. `src/generate.js` streams a quiz from the keyless OpenAI-compatible endpoint at
+   `https://llm.elimelt.com/v1` (`gpt-oss:20b`). The model emits JSON Lines, so
+   questions appear one by one. Question count scales with document length (4-10),
+   roughly one third free-response.
+3. Multiple-choice answers are checked locally. Free-response answers are graded by
+   the same endpoint against a per-question rubric (`src/grade.js`), scored 0-2 with
+   one sentence of feedback. Grading runs in the background while the user keeps
+   answering. If the grader fails, the question is excluded from the total instead
+   of counting against the user.
+4. Tracks, questions, and attempt history persist in IndexedDB (`src/db.js`).
+   Nothing leaves the browser except the document (once, for generation) and
+   free-response answers (once each, for grading). Nothing is stored server-side.
+
+There is no backend and no credentials. Do not point this client at an endpoint
+that needs an API key.
 
 ## Develop
 
@@ -10,62 +29,9 @@ npm run dev
 npm test
 ```
 
-## Add a quiz
-
-Quizzes are plain objects in `src/quizzes.js`; the UI and scoring engine require no quiz-specific code.
-
-```js
-{
-  id: "example",
-  glyph: "✦",
-  color: "#697fa8",
-  minutes: 3,
-  title: "Your quiz title",
-  description: "A one-line invitation.",
-  axes: [{ id: "energy", left: "Reflective", right: "Expressive" }],
-  questions: [{
-    id: "weekend", type: "choice", prompt: "Your perfect Saturday?",
-    options: [
-      { value: "quiet", label: "A book and nowhere to be", scores: { energy: -2 } },
-      { value: "crowd", label: "A room full of new people", scores: { energy: 2 } },
-    ],
-  }],
-  outcomes: [
-    { at: 20, title: "Quiet current", description: "…", insight: "…" },
-    { at: 80, title: "Bright signal", description: "…", insight: "…" },
-  ],
-}
-```
-
-Each axis is normalized to `0–100`. Outcome `at` values describe the score each outcome best represents. Add as many axes as needed; option `scores` may contribute to several.
-
-For free response, use `type: "text"` with a `grading` block and a keyword `rubric` fallback:
-
-```js
-{ id: "reflection", type: "text", prompt: "What do you tell yourself after a mistake?",
-  rubric: { energy: { keywords: ["learn", "next time", "okay"], score: -2 } },
-  grading: {
-    axis: "energy", scale: [-2, 2],
-    criteria: "Left pole: … Right pole: …",
-    anchors: [
-      { text: "an example tender answer", score: -2 },
-      { text: "an example demanding answer", score: 2 },
-    ],
-  } }
-```
-
-`src/grader.js` grades text answers with the keyless OpenAI-compatible endpoint at
-`https://llm.elimelt.com/v1` (`gpt-oss:20b`). It sends the criteria and anchors as a
-few-shot rubric at temperature 0 and expects `{"relevant": bool, "score": int}` back.
-Grading starts the moment the user submits the answer and runs while they finish the
-quiz, so results usually appear with no wait. Off-topic or gibberish answers score 0.
-If the endpoint fails or times out (10s, 2 attempts), scoring falls back to the
-keyword `rubric`; questions without a `grading` block use the keyword rubric only.
-
-The scoring boundary is `scoreQuiz(quiz, answers)` in `src/scoring.js`. Text answers
-arrive either as plain strings or as `{ text, grades }` objects; grades map onto the
-same axis-point shape as choice options. Do not put provider credentials in this
-static client; the endpoint must stay keyless.
+Pure logic (question parsing, grade parsing, attempt scoring) lives in
+`src/generate.js`, `src/grade.js`, and `src/attempts.js` and is covered by
+`node --test`.
 
 ## Deploy
 
